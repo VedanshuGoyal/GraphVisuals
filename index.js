@@ -53,6 +53,10 @@ function draw() {
 		edges: {
 			width: 2,
 			shadow: true,
+			font : {
+				size: 18,
+				align: 'top',
+			},
 		},
 		layout: {
 			randomSeed: seed
@@ -65,8 +69,8 @@ function draw() {
 			// enabled: false,
 			addNode: function(data, callback) {
 				// filling in the popup DOM elements
-
 				document.getElementById("operation").innerText = "Add Node";
+				document.getElementById("operation-text").innerText = "Node ID";
 				document.getElementById("node-id").value = Nz++;
 				document.getElementById("saveButton").onclick = saveData.bind(
 					this,
@@ -77,30 +81,27 @@ function draw() {
 					clearPopUp.bind();
 				document.getElementById("network-popUp").style.display = "block";
 			},
-			// editNode: function (data, callback) {
-			//   // filling in the popup DOM elements
-			//   document.getElementById("operation").innerText = "Edit Node";
-			//   document.getElementById("node-id").value = data.id;
-			//   document.getElementById("saveButton").onclick = saveData.bind(
-			//     this,
-			//     data,
-			//     callback
-			//   );
-			//   document.getElementById("cancelButton").onclick = cancelEdit.bind(
-			//     this,
-			//     callback
-			//   );
-			//   document.getElementById("network-popUp").style.display = "block";
-			// },
 			addEdge: function(data, callback) {
 				if (data.from == data.to) {
 					var r = confirm("Do you want to connect the node to itself?");
-					if (r == true) {
-						callback(data);
+					if (r != true) {
+						callback(null);
+						return;
 					}
-				} else {
-					callback(data);
 				}
+				document.getElementById("operation").innerText = "Add Edge";
+				editEdge(data, callback);
+			},
+			editEdge: function(data, callback){
+				if (data.from == data.to) {
+					var r = confirm("Do you want to connect the node to itself?");
+					if (r != true) {
+						callback(null);
+						return;
+					}
+				}
+				document.getElementById("operation").innerText = "Edit edge";
+				editEdge(data, callback);
 			},
 		},
 	};
@@ -121,6 +122,30 @@ function cancelEdit(callback) {
 function saveData(data, callback) {
 	data.label = document.getElementById("node-id").value;
 	data.id = parseInt(data.label);
+	clearPopUp();
+	callback(data);
+}
+
+function editEdge(data, callback) {
+	// filling in the popup DOM elements
+	document.getElementById("operation-text").innerText = "Edge Value";
+	document.getElementById("node-id").value = data.label;
+	document.getElementById("saveButton").onclick = saveEdgeData.bind(
+		this,
+		data,
+		callback
+	);
+	document.getElementById("cancelButton").onclick = cancelEdit.bind(
+		this,
+		callback
+	);
+	document.getElementById("network-popUp").style.display = "block";
+}
+
+function saveEdgeData(data, callback) {
+	if (typeof data.to === "object") data.to = data.to.id;
+	if (typeof data.from === "object") data.from = data.from.id;
+	data.label = document.getElementById("node-id").value;
 	clearPopUp();
 	callback(data);
 }
