@@ -118,11 +118,12 @@ function draw() {
     });
 
     network.on("doubleClick", function (params) {
-        if(params.nodes.length == 0) return;
+        if (params.nodes.length == 0) return;
         nid = parseInt(params.nodes);
         var node = nodes.get(nid);
-        var z = (node.physics == undefined || node.physics == true) ? false : true;
-        nodes.update({id : nid, physics : z})
+        var z =
+            node.physics == undefined || node.physics == true ? false : true;
+        nodes.update({ id: nid, physics: z });
     });
 }
 
@@ -197,10 +198,12 @@ var rmp = []; // reverse mapping
 var adj = []; // adjaceny list
 
 function init_algo() {
-    rmp = []; mp = {};
+    rmp = [];
+    mp = {};
     (N = nodes.get()), (E = edges.get());
     // console.log(E)
-    n = N.length; e = E.length;
+    n = N.length;
+    e = E.length;
     let z = 0;
     for (i in N) {
         let id = N[i].id;
@@ -323,16 +326,25 @@ function SpanningTree() {
         }
     }
 
-    var graph = new jsgraphs.WeightedGraph(Nz);
     let edgesCount = E.length;
+
+    for (let k = 0; k < edgesCount; k++) {
+        edges.update({
+            id: E[k].id,
+            width: 2,
+            color: "#000",
+        });
+    }
+
+    var graph = new jsgraphs.WeightedGraph(Nz);
 
     for (let i = 0; i < edgesCount; i++) {
         if (E[i].label) {
             graph.addEdge(
                 new jsgraphs.Edge(E[i].from, E[i].to, parseInt(E[i].label))
             );
-        } else{
-            edges.update({id : E[i].id, label : "1"});
+        } else {
+            edges.update({ id: E[i].id, label: "1" });
             E[i].label = "1";
             graph.addEdge(new jsgraphs.Edge(E[i].from, E[i].to, 1));
         }
@@ -348,7 +360,7 @@ function SpanningTree() {
                 E[k].to == mst[j].w &&
                 parseInt(E[k].label) == mst[j].weight
             ) {
-                console.log(E[k].id)
+                console.log(E[k].id);
                 edges.update({
                     id: E[k].id,
                     width: 5,
@@ -362,7 +374,7 @@ function SpanningTree() {
     for (let i = 0; i < n; i++) {
         nodes.update({
             id: rmp[i],
-            color: "#675B7F",
+            color: { background: "#675B7F" },
         });
     }
 }
@@ -370,9 +382,9 @@ function SpanningTree() {
 var eg = []; // adjacency list for euler graph
 var edge_order = [];
 
-function init_euler(){
+function init_euler() {
     eg = new Array(n);
-    edge_order = new Array;
+    edge_order = new Array();
     visit = new Array(ne).fill(0);
 
     for (let i = 0; i < n; i++) {
@@ -381,7 +393,8 @@ function init_euler(){
 
     let z = 0;
     for (e in E) {
-        let u = E[e].from, v = E[e].to;
+        let u = E[e].from,
+            v = E[e].to;
         u = mp[u];
         v = mp[v];
         eg[u].push([v, z]);
@@ -390,11 +403,12 @@ function init_euler(){
     }
 }
 
-function eulerdfs(s, edn){ // node, edge num
+function eulerdfs(s, edn) {
+    // node, edge num
     for (let j = 0; j < eg[s].length; j++) {
         let x = eg[s][j];
-        if(vis[x[1]]) continue;
-        
+        if (vis[x[1]]) continue;
+
         vis[x[1]] = 1;
         eulerdfs(x[0]);
         edge_order.push(x[1]);
@@ -415,16 +429,16 @@ function EulerCircuit() {
     eulerdfs(0, -1);
     edge_order.reverse();
 
-    for(let i = 0; i < edge_order.length; i++){
+    for (let i = 0; i < edge_order.length; i++) {
         edges.update({
-            id : E[edge_order[i]].id,
-            label : i.toString(),
-            width : 5,
-            font : {
-                color : "#DE3163",
-                size : 23,
-            }
-        });       
+            id: E[edge_order[i]].id,
+            label: i.toString(),
+            width: 5,
+            font: {
+                color: "#DE3163",
+                size: 23,
+            },
+        });
     }
 }
 
@@ -436,15 +450,67 @@ function Degree() {
     }
 }
 
+function graphHHA(sequence, lengthSeq) {
+    let newGraph = new Array(lengthSeq);
+    for (let index = 0; index < lengthSeq; index++) {
+        newGraph[index] = new Array(lengthSeq).fill(0);
+    }
+
+    for (let i = 0; i < lengthSeq; i++) {
+        for (let j = i + 1; j < lengthSeq; j++) {
+            if (sequence[i] > 0 && sequence[j] > 0) {
+                sequence[i] = sequence[i] - 1;
+                sequence[j] = sequence[j] - 1;
+                newGraph[i][j] = 1;
+                newGraph[j][i] = 1;
+            }
+        }
+    }
+
+    nodes = new vis.DataSet();
+    edges = new vis.DataSet();
+
+    data = random_graph(lengthSeq);
+    nodes.add(data.nodes);
+    edges.add(data.edges);
+
+    draw();
+
+    edges.clear();
+
+    let col = 1;
+
+    for (let i = 0; i < lengthSeq; i++) {
+        for (let j = col; j < lengthSeq; j++) {
+            if (newGraph[i][j] == 1) {
+                edges.add({
+                    from: i,
+                    to: j,
+                });
+            }
+        }
+        col++;
+    }
+}
+
 function HHA() {
-    var sequence = [];
+    let inString = prompt("Enter space seperated degree sequence.", "");
+    if (!inString) {
+        alert("No sequence provided.");
+        return;
+    }
+
+    var sequence = inString.split(" ").map(Number);
     var lengthSeq = sequence.length;
+
+    var degreeSeq = [];
+    Array.prototype.push.apply(degreeSeq, sequence);
 
     while (true) {
         sequence.sort((first, second) => second - first);
 
         if (sequence[0] == 0) {
-            alert("Graph is possible.");
+            graphHHA(degreeSeq, lengthSeq);
             return;
         }
 
