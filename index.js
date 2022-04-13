@@ -406,9 +406,15 @@ function EulerCircuit() {
     edge_order.reverse();
 
     for(let i = 0; i < edge_order.length; i++){
-        E[edge_order[i]].label = i.toString();           
+        edges.update({
+            id : E[edge_order[i]].id,
+            label : i.toString(),
+            font : {
+                color : "#DE3163",
+                size : 23,
+            }
+        });       
     }
-    edges.update(E);
 }
 
 function Degree() {
