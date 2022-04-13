@@ -184,14 +184,16 @@ function init() {
 // algos...
 
 var N, E; // set of nodes & edges
-var n; // # of nodes
+var n, ne; // # of nodes, # of edges
 var mp = {};
-const rmp = []; // reverse mapping
+var rmp = []; // reverse mapping
 var adj = []; // adjaceny list
 
 function init_algo() {
+    rmp = []; mp = {};
     (N = nodes.get()), (E = edges.get());
-    n = N.length;
+    // console.log(E)
+    n = N.length; e = E.length;
     let z = 0;
     for (i in N) {
         let id = N[i].id;
@@ -283,27 +285,27 @@ function Bipartie() {
 }
 
 function DfsConnect(node) {
-    visitedS[node] = 1;
+    visit[node] = 1;
     for (let j = 0; j < adj[node].length; j++) {
         let next = adj[node][j];
-        if (visitedS[next] == 0) {
+        if (visit[next] == 0) {
             DfsConnect(next);
         }
     }
     return;
 }
 
-var visitedS = [];
+var visit = [];
 
 function SpanningTree() {
     init_algo();
 
     var count = 0;
     var isConnected = true;
-    visitedS = new Array(n).fill(0);
+    visit = new Array(n).fill(0);
 
     for (let i = 0; i < n; i++) {
-        if (visitedS[i] == 0) {
+        if (visit[i] == 0) {
             count = count + 1;
             if (count === 2) {
                 isConnected = false;
@@ -355,90 +357,58 @@ function SpanningTree() {
     }
 }
 
-// var circuitEuler = []; // Euler circuit
-// var visitedEuler = [];
-// var ed = [];
+var eg = []; // adjacency list for euler graph
+var edge_order = [];
 
-// function DfsEuler(node) {
-//     visitedEuler[node] = 1;
-//     circuitEuler.push(node);
-//     for (let j = 0; j < adj[node].length; j++) {
-//         for (k in E) {
-//             if (k.from === node && k.to === j) {
-//                 ed[node][j] = 1;
-//                 break;
-//             } else if (k.to === node && k.from === j) {
-//                 ed[j][node] = 1;
-//                 break;
-//             }
-//         }
-//         let next = adj[node][j];
-//         if (visitedEuler[next] == 0) {
-//             DfsEuler(next);
-//         } else if (ed[node][j] === -1 || ed[j][node] === -1) {
-//             DfsEuler(next);
-//         }
-//     }
-//     return;
-// }
+function init_euler(){
+    eg = new Array(n);
+    edge_order = new Array;
+    visit = new Array(ne).fill(0);
+
+    for (let i = 0; i < n; i++) {
+        eg[i] = new Array();
+    }
+
+    let z = 0;
+    for (e in E) {
+        let u = E[e].from, v = E[e].to;
+        u = mp[u];
+        v = mp[v];
+        eg[u].push([v, z]);
+        eg[v].push([u, z]);
+        z++;
+    }
+}
+
+function eulerdfs(s, edn){ // node, edge num
+    for (let j = 0; j < eg[s].length; j++) {
+        let x = eg[s][j];
+        if(vis[x[1]]) continue;
+        
+        vis[x[1]] = 1;
+        eulerdfs(x[0]);
+        edge_order.push(x[1]);
+    }
+}
 
 function EulerCircuit() {
     init_algo();
-
-    var isEulerian = true;
-    var count = 0;
+    init_euler();
 
     for (let i = 0; i < n; i++) {
         if (adj[i].length % 2 != 0) {
-            isEulerian = false;
             alert("Given Graph does not have a Eulerian cycle.");
             return;
         }
     }
 
-    // for (let i = 0; i < n; i++) {
-    //     ed[i] = new Array(n).fill(-1);
-    // }
+    eulerdfs(0, -1);
+    edge_order.reverse();
 
-    // visitedEuler = new Array(n).fill(0);
-
-    // for (let i = 0; i < n; i++) {
-    //     if (visitedEuler[i] == 0) {
-    //         count = count + 1;
-    //         if (count === 2) {
-    //             isEulerian = false;
-    //             alert("Given Graph does not have a Eulerian cycle.");
-    //             return;
-    //         }
-    //         DfsEuler(i);
-    //     }
-    // }
-
-    // let cir = "";
-
-    // for (let i = 0; i < n; i++) {
-    //     cir = cir + circuitEuler[i] + " ";
-    // }
-
-    // cir = cir + circuitEuler[0];
-
-    alert("Given Graph has a Eulerian cycle");
-
-    // for (let i = 0; i < n; i++) {
-    //     EulerianUpdate(i);
-    // }
-
-    // function EulerianUpdate(i) {
-    //     setTimeout(function () {
-    //         nodes.update({
-    //             id: rmp[i],
-    //             color: {
-    //                 border: "#000",
-    //                 background: "#189AB4",
-    //             },
-    //         });
-    //     }, 2000);
-    // }
+    for(let i = 0; i < edge_order.length; i++){
+        E[edge_order[i]].label = i.toString();           
+    }
+    edges.update(E);
 }
 
 function Degree() {
