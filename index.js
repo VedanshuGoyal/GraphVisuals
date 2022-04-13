@@ -58,6 +58,7 @@ function draw() {
                 size: 18,
                 align: "top",
             },
+            label: "0",
         },
         layout: {
             randomSeed: seed,
@@ -113,6 +114,9 @@ function draw() {
         },
     };
     network = new vis.Network(container, data, options);
+    network.on("hoverNode", function (properties) {
+        Degree();
+    });
 }
 
 function clearPopUp() {
@@ -136,7 +140,7 @@ function saveData(data, callback) {
 function editEdge(data, callback) {
     // filling in the popup DOM elements
     document.getElementById("operation-text").innerText = "Edge Value";
-    document.getElementById("node-id").value = data.label;
+    document.getElementById("node-id").value = "0";
     document.getElementById("saveButton").onclick = saveEdgeData.bind(
         this,
         data,
@@ -163,14 +167,17 @@ function init() {
 
     Nz = 5;
     // Nz = -1;
-    inidata = random_graph(Nz++);
+    inidata = random_graph(Nz);
+
+    for (let i = 0; i < inidata.edges.length; i++) {
+        inidata.edges[i].label = "0";
+    }
 
     nodes.add(inidata.nodes);
     edges.add(inidata.edges);
 
     // console.log(toJSON(nodes));
     // console.log(toJSON(edges));
-
     draw();
 }
 
@@ -275,7 +282,78 @@ function Bipartie() {
     }
 }
 
-function SpanningTree() {}
+function DfsConnect(node) {
+    visitedS[node] = 1;
+    for (let j = 0; j < adj[node].length; j++) {
+        let next = adj[node][j];
+        if (visitedS[next] == 0) {
+            DfsConnect(next);
+        }
+    }
+    return;
+}
+
+var visitedS = [];
+
+function SpanningTree() {
+    init_algo();
+
+    var count = 0;
+    var isConnected = true;
+    visitedS = new Array(n).fill(0);
+
+    for (let i = 0; i < n; i++) {
+        if (visitedS[i] == 0) {
+            count = count + 1;
+            if (count === 2) {
+                isConnected = false;
+                alert("Given Graph is not connected.");
+                return;
+            }
+            DfsConnect(i);
+        }
+    }
+
+    var graph = new jsgraphs.WeightedGraph(Nz);
+    let edgesCount = E.length;
+
+    for (let i = 0; i < edgesCount; i++) {
+        if (E[i].label) {
+            graph.addEdge(
+                new jsgraphs.Edge(E[i].from, E[i].to, parseInt(E[i].label))
+            );
+        } else if (E[i].label == "undefined" || !E[i].label) {
+            graph.addEdge(new jsgraphs.Edge(E[i].from, E[i].to, 0));
+        }
+    }
+
+    var kruskal = new jsgraphs.KruskalMST(graph);
+    var mst = kruskal.mst;
+
+    for (let j = 0; j < mst.length; j++) {
+        for (let k = 0; k < edgesCount; k++) {
+            if (
+                E[k].from == mst[j].v &&
+                E[k].to == mst[j].w &&
+                parseInt(E[k].label) == mst[j].weight
+            ) {
+                edges.update({
+                    id: E[k].id,
+                    width: 5,
+                    color: "#000",
+                });
+                break;
+            }
+        }
+    }
+
+    for (let i = 0; i < n; i++) {
+        nodes.update({
+            id: rmp[i],
+            color: "#675B7F",
+        });
+    }
+}
 
 // var circuitEuler = []; // Euler circuit
 // var visitedEuler = [];
