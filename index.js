@@ -116,6 +116,14 @@ function draw() {
     network.on("hoverNode", function (properties) {
         Degree();
     });
+
+    network.on("doubleClick", function (params) {
+        if(params.nodes.length == 0) return;
+        nid = parseInt(params.nodes);
+        var node = nodes.get(nid);
+        var z = (node.physics == undefined || node.physics == true) ? false : true;
+        nodes.update({id : nid, physics : z})
+    });
 }
 
 function clearPopUp() {
@@ -411,6 +419,7 @@ function EulerCircuit() {
         edges.update({
             id : E[edge_order[i]].id,
             label : i.toString(),
+            width : 5,
             font : {
                 color : "#DE3163",
                 size : 23,
