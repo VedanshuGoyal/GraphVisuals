@@ -58,7 +58,6 @@ function draw() {
                 size: 18,
                 align: "top",
             },
-            label: "0",
         },
         layout: {
             randomSeed: seed,
@@ -169,9 +168,9 @@ function init() {
     // Nz = -1;
     inidata = random_graph(Nz);
 
-    for (let i = 0; i < inidata.edges.length; i++) {
-        inidata.edges[i].label = "0";
-    }
+    // for (let i = 0; i < inidata.edges.length; i++) {
+    //     inidata.edges[i].label = "0";
+    // }
 
     nodes.add(inidata.nodes);
     edges.add(inidata.edges);
@@ -324,8 +323,10 @@ function SpanningTree() {
             graph.addEdge(
                 new jsgraphs.Edge(E[i].from, E[i].to, parseInt(E[i].label))
             );
-        } else if (E[i].label == "undefined" || !E[i].label) {
-            graph.addEdge(new jsgraphs.Edge(E[i].from, E[i].to, 0));
+        } else{
+            edges.update({id : E[i].id, label : "1"});
+            E[i].label = "1";
+            graph.addEdge(new jsgraphs.Edge(E[i].from, E[i].to, 1));
         }
     }
 
@@ -339,6 +340,7 @@ function SpanningTree() {
                 E[k].to == mst[j].w &&
                 parseInt(E[k].label) == mst[j].weight
             ) {
+                console.log(E[k].id)
                 edges.update({
                     id: E[k].id,
                     width: 5,
