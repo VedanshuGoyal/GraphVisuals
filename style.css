@@ -70,3 +70,18 @@ div.table_description {
 	padding: 10px;
 	text-align: center;
 }
+
+.gorder {
+	display: flex;
+	padding: 5px;
+	margin-top: 5px;
+}
+
+.gsize {
+	display: flex;
+	padding: 5px;
+}
+
+#order, #size {
+	margin-left: 10px;
+}

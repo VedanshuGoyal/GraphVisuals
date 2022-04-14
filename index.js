@@ -1,5 +1,5 @@
-var nodes = new vis.DataSet;
-var edges = new vis.DataSet;
+var nodes = new vis.DataSet();
+var edges = new vis.DataSet();
 var network = null;
 var Nz = 5;
 var seed = 2;
@@ -7,73 +7,87 @@ var isonchange = 0;
 
 function updateTextarea() {
     let z = document.getElementById("edgedata");
-    z.value ="";
+    z.value = "";
     E = edges.get();
 
     for (e in E) {
         let u = E[e].from,
-            v = E[e].to, d = E[e].label;
+            v = E[e].to,
+            d = E[e].label;
         z.value += u;
         z.value += " ";
         z.value += v;
-        if(d !== undefined && d.length > 0){
+        if (d !== undefined && d.length > 0) {
             z.value += " ";
             z.value += d;
         }
         z.value += "\n";
     }
+
+    N = nodes.get();
+
+    let o = document.getElementById("order");
+    let s = document.getElementById("size");
+    o.innerText = N.length.toString();
+    s.innerText = E.length.toString();
 }
 
-edges.on('*', function (event, properties, senderId) {
-    if(isonchange) return;
+nodes.on("*", function (event, properties, senderId) {
+    if (isonchange) return;
     updateTextarea();
 });
 
-function changetextarea(){
+edges.on("*", function (event, properties, senderId) {
+    if (isonchange) return;
+    updateTextarea();
+});
+
+function changetextarea() {
     isonchange = 1;
 
     edges.clear();
     nodes.clear();
     let map = {};
     let z = document.getElementById("edgedata").value;
-    console.log(z)
-    z += '\n';
+    console.log(z);
+    z += "\n";
 
     let s = "";
     let sc = [];
-    for (let c of z){
-        if(c == '\n' || c == ' '){
-            if(s.length > 0) sc.push(s);
+    for (let c of z) {
+        if (c == "\n" || c == " ") {
+            if (s.length > 0) sc.push(s);
             s = "";
-            if(c == '\n'){
-                if(sc.length == 1){
+            if (c == "\n") {
+                if (sc.length == 1) {
                     let u = sc[0];
-                    nodes.update({id : parseInt(u), label : u});
-                }else if(sc.length <= 3){
-                    let u = sc[0], v = sc[1];
-                    nodes.update({id : parseInt(u), label : u});
-                    nodes.update({id : parseInt(v), label : v});
-                    if(sc.length == 3){
+                    nodes.update({ id: parseInt(u), label: u });
+                } else if (sc.length <= 3) {
+                    let u = sc[0],
+                        v = sc[1];
+                    nodes.update({ id: parseInt(u), label: u });
+                    nodes.update({ id: parseInt(v), label: v });
+                    if (sc.length == 3) {
                         let d = sc[2];
-                        edges.update({from : parseInt(u), to : parseInt(v), label : d});
-                    }else{
-                        edges.update({from : parseInt(u), to : parseInt(v)});
+                        edges.update({
+                            from: parseInt(u),
+                            to: parseInt(v),
+                            label: d,
+                        });
+                    } else {
+                        edges.update({ from: parseInt(u), to: parseInt(v) });
                     }
-                }else{
-
+                } else {
                 }
                 sc = [];
             }
-        }else{
+        } else {
             s += c;
         }
     }
 
-
-
     isonchange = 0;
 }
-
 
 function toJSON(obj) {
     return JSON.stringify(obj.get(), null, 4);
@@ -191,11 +205,18 @@ function draw() {
     });
 
     network.on("doubleClick", function (params) {
-        if(params.nodes.length == 0) return;
+        if (params.nodes.length == 0) return;
         nid = parseInt(params.nodes);
         var node = nodes.get(nid);
-        var z = (node.physics == undefined || node.physics == true) ? false : true;
-        nodes.update({id : nid, physics : z, borderWidth : 4, color : {highlight : "DA70D6"}});
+        var z =
+            node.physics == undefined || node.physics == true ? false : true;
+        var bw = node.physics == undefined || node.physics == true ? 4 : 2;
+        nodes.update({
+            id: nid,
+            physics: z,
+            borderWidth: bw,
+            color: { highlight: "DA70D6" },
+        });
     });
 }
 
@@ -255,7 +276,7 @@ function init() {
 
     // nodes.add({id : 31, label : "31"});
     // console.log(toJSON(nodes));
-    
+
     draw();
 }
 
@@ -268,10 +289,12 @@ var rmp = []; // reverse mapping
 var adj = []; // adjaceny list
 
 function init_algo() {
-    rmp = []; mp = {};
+    rmp = [];
+    mp = {};
     (N = nodes.get()), (E = edges.get());
     // console.log(E)
-    n = N.length; e = E.length;
+    n = N.length;
+    e = E.length;
     let z = 0;
     for (i in N) {
         let id = N[i].id;
@@ -402,10 +425,12 @@ function SpanningTree() {
             graph.addEdge(
                 new jsgraphs.Edge(E[i].from, E[i].to, parseInt(E[i].label))
             );
-        } else{
-            edges.update({id : E[i].id, label : "1"});
+        } else {
+            edges.update({ id: E[i].id, label: "1" });
             E[i].label = "1";
-            graph.addEdge(new jsgraphs.Edge(E[i].from, E[i].to, 1));
+            graph.addEdge(
+                new jsgraphs.Edge(E[i].from, E[i].to, parseInt(E[i].label))
+            );
         }
     }
 
@@ -433,7 +458,7 @@ function SpanningTree() {
     for (let i = 0; i < n; i++) {
         nodes.update({
             id: rmp[i],
-            color: "#675B7F",
+            color: { background: "#675B7F" },
         });
     }
 }
@@ -441,9 +466,9 @@ function SpanningTree() {
 var eg = []; // adjacency list for euler graph
 var edge_order = [];
 
-function init_euler(){
+function init_euler() {
     eg = new Array(n);
-    edge_order = new Array;
+    edge_order = new Array();
     visit = new Array(ne).fill(0);
 
     for (let i = 0; i < n; i++) {
@@ -452,7 +477,8 @@ function init_euler(){
 
     let z = 0;
     for (e in E) {
-        let u = E[e].from, v = E[e].to;
+        let u = E[e].from,
+            v = E[e].to;
         u = mp[u];
         v = mp[v];
         eg[u].push([v, z]);
@@ -461,11 +487,12 @@ function init_euler(){
     }
 }
 
-function eulerdfs(s, edn){ // node, edge num
+function eulerdfs(s, edn) {
+    // node, edge num
     for (let j = 0; j < eg[s].length; j++) {
         let x = eg[s][j];
-        if(vis[x[1]]) continue;
-        
+        if (vis[x[1]]) continue;
+
         vis[x[1]] = 1;
         eulerdfs(x[0]);
         edge_order.push(x[1]);
@@ -486,16 +513,16 @@ function EulerCircuit() {
     eulerdfs(0, -1);
     edge_order.reverse();
 
-    for(let i = 0; i < edge_order.length; i++){
+    for (let i = 0; i < edge_order.length; i++) {
         edges.update({
-            id : E[edge_order[i]].id,
-            label : i.toString(),
-            width : 5,
-            font : {
-                color : "#DE3163",
-                size : 23,
-            }
-        });       
+            id: E[edge_order[i]].id,
+            label: i.toString(),
+            width: 5,
+            font: {
+                color: "#DE3163",
+                size: 23,
+            },
+        });
     }
 }
 
@@ -527,6 +554,8 @@ function graphHHA(sequence, lengthSeq) {
     nodes.clear();
     edges.clear();
 
+    Nz = lengthSeq;
+
     data = random_graph(lengthSeq);
     nodes.add(data.nodes);
     edges.add(data.edges);
@@ -557,7 +586,32 @@ function HHA() {
         return;
     }
 
-    var sequence = inString.split(" ").map(Number);
+    var isWrong = false;
+
+    try {
+        var sequence = inString.split(" ").map((str) => {
+            if (isNaN(str)) {
+                alert("Wrong input.");
+                throw BreakError;
+            } else {
+                return parseInt(str);
+            }
+        });
+    } catch (err) {
+        // if (err !== BreakError) throw err;
+        isWrong = true;
+    }
+
+    // console.log("s", sequence[0]);
+    // if (isNaN(sequence)) {
+    //     alert("Wrong input.");
+    //     return;
+    // }
+
+    if (isWrong) {
+        return;
+    }
+
     var lengthSeq = sequence.length;
 
     var degreeSeq = [];
