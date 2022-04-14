@@ -1,9 +1,79 @@
-var nodes = null;
-var edges = null;
+var nodes = new vis.DataSet;
+var edges = new vis.DataSet;
 var network = null;
 var Nz = 5;
-// var Nz = -1;
 var seed = 2;
+var isonchange = 0;
+
+function updateTextarea() {
+    let z = document.getElementById("edgedata");
+    z.value ="";
+    E = edges.get();
+
+    for (e in E) {
+        let u = E[e].from,
+            v = E[e].to, d = E[e].label;
+        z.value += u;
+        z.value += " ";
+        z.value += v;
+        if(d !== undefined && d.length > 0){
+            z.value += " ";
+            z.value += d;
+        }
+        z.value += "\n";
+    }
+}
+
+edges.on('*', function (event, properties, senderId) {
+    if(isonchange) return;
+    updateTextarea();
+});
+
+function changetextarea(){
+    isonchange = 1;
+
+    edges.clear();
+    nodes.clear();
+    let map = {};
+    let z = document.getElementById("edgedata").value;
+    console.log(z)
+    z += '\n';
+
+    let s = "";
+    let sc = [];
+    for (let c of z){
+        if(c == '\n' || c == ' '){
+            if(s.length > 0) sc.push(s);
+            s = "";
+            if(c == '\n'){
+                if(sc.length == 1){
+                    let u = sc[0];
+                    nodes.update({id : parseInt(u), label : u});
+                }else if(sc.length <= 3){
+                    let u = sc[0], v = sc[1];
+                    nodes.update({id : parseInt(u), label : u});
+                    nodes.update({id : parseInt(v), label : v});
+                    if(sc.length == 3){
+                        let d = sc[2];
+                        edges.update({from : parseInt(u), to : parseInt(v), label : d});
+                    }else{
+                        edges.update({from : parseInt(u), to : parseInt(v)});
+                    }
+                }else{
+
+                }
+                sc = [];
+            }
+        }else{
+            s += c;
+        }
+    }
+
+
+
+    isonchange = 0;
+}
+
 
 function toJSON(obj) {
     return JSON.stringify(obj.get(), null, 4);
@@ -22,6 +92,9 @@ function random_graph(x) {
 
 function draw() {
     destroy();
+
+    // updateTextarea();
+
     var data = {
         nodes: nodes,
         edges: edges,
@@ -64,7 +137,7 @@ function draw() {
         }, // just to make sure the layout is the same when the locale is changed
         // locale: document.getElementById("locale").value,
         interaction: {
-            keyboard: true,
+            // keyboard: true,
             hover: true,
         },
         manipulation: {
@@ -118,12 +191,11 @@ function draw() {
     });
 
     network.on("doubleClick", function (params) {
-        if (params.nodes.length == 0) return;
+        if(params.nodes.length == 0) return;
         nid = parseInt(params.nodes);
         var node = nodes.get(nid);
-        var z =
-            node.physics == undefined || node.physics == true ? false : true;
-        nodes.update({ id: nid, physics: z });
+        var z = (node.physics == undefined || node.physics == true) ? false : true;
+        nodes.update({id : nid, physics : z, borderWidth : 4, color : {highlight : "DA70D6"}});
     });
 }
 
@@ -148,7 +220,7 @@ function saveData(data, callback) {
 function editEdge(data, callback) {
     // filling in the popup DOM elements
     document.getElementById("operation-text").innerText = "Edge Value";
-    document.getElementById("node-id").value = "0";
+    document.getElementById("node-id").value = "";
     document.getElementById("saveButton").onclick = saveEdgeData.bind(
         this,
         data,
@@ -170,22 +242,20 @@ function saveEdgeData(data, callback) {
 }
 
 function init() {
-    nodes = new vis.DataSet();
-    edges = new vis.DataSet();
+    nodes.clear();
+    edges.clear();
+    // nodes = new vis.DataSet();
+    // edges = new vis.DataSet();
 
     Nz = 5;
-    // Nz = -1;
     inidata = random_graph(Nz);
-
-    // for (let i = 0; i < inidata.edges.length; i++) {
-    //     inidata.edges[i].label = "0";
-    // }
 
     nodes.add(inidata.nodes);
     edges.add(inidata.edges);
 
+    // nodes.add({id : 31, label : "31"});
     // console.log(toJSON(nodes));
-    // console.log(toJSON(edges));
+    
     draw();
 }
 
@@ -198,12 +268,10 @@ var rmp = []; // reverse mapping
 var adj = []; // adjaceny list
 
 function init_algo() {
-    rmp = [];
-    mp = {};
+    rmp = []; mp = {};
     (N = nodes.get()), (E = edges.get());
     // console.log(E)
-    n = N.length;
-    e = E.length;
+    n = N.length; e = E.length;
     let z = 0;
     for (i in N) {
         let id = N[i].id;
@@ -326,25 +394,16 @@ function SpanningTree() {
         }
     }
 
-    let edgesCount = E.length;
-
-    for (let k = 0; k < edgesCount; k++) {
-        edges.update({
-            id: E[k].id,
-            width: 2,
-            color: "#000",
-        });
-    }
-
     var graph = new jsgraphs.WeightedGraph(Nz);
+    let edgesCount = E.length;
 
     for (let i = 0; i < edgesCount; i++) {
         if (E[i].label) {
             graph.addEdge(
                 new jsgraphs.Edge(E[i].from, E[i].to, parseInt(E[i].label))
             );
-        } else {
-            edges.update({ id: E[i].id, label: "1" });
+        } else{
+            edges.update({id : E[i].id, label : "1"});
             E[i].label = "1";
             graph.addEdge(new jsgraphs.Edge(E[i].from, E[i].to, 1));
         }
@@ -360,7 +419,7 @@ function SpanningTree() {
                 E[k].to == mst[j].w &&
                 parseInt(E[k].label) == mst[j].weight
             ) {
-                console.log(E[k].id);
+                // console.log(E[k].id)
                 edges.update({
                     id: E[k].id,
                     width: 5,
@@ -374,7 +433,7 @@ function SpanningTree() {
     for (let i = 0; i < n; i++) {
         nodes.update({
             id: rmp[i],
-            color: { background: "#675B7F" },
+            color: "#675B7F",
         });
     }
 }
@@ -382,9 +441,9 @@ function SpanningTree() {
 var eg = []; // adjacency list for euler graph
 var edge_order = [];
 
-function init_euler() {
+function init_euler(){
     eg = new Array(n);
-    edge_order = new Array();
+    edge_order = new Array;
     visit = new Array(ne).fill(0);
 
     for (let i = 0; i < n; i++) {
@@ -393,8 +452,7 @@ function init_euler() {
 
     let z = 0;
     for (e in E) {
-        let u = E[e].from,
-            v = E[e].to;
+        let u = E[e].from, v = E[e].to;
         u = mp[u];
         v = mp[v];
         eg[u].push([v, z]);
@@ -403,12 +461,11 @@ function init_euler() {
     }
 }
 
-function eulerdfs(s, edn) {
-    // node, edge num
+function eulerdfs(s, edn){ // node, edge num
     for (let j = 0; j < eg[s].length; j++) {
         let x = eg[s][j];
-        if (vis[x[1]]) continue;
-
+        if(vis[x[1]]) continue;
+        
         vis[x[1]] = 1;
         eulerdfs(x[0]);
         edge_order.push(x[1]);
@@ -429,16 +486,16 @@ function EulerCircuit() {
     eulerdfs(0, -1);
     edge_order.reverse();
 
-    for (let i = 0; i < edge_order.length; i++) {
+    for(let i = 0; i < edge_order.length; i++){
         edges.update({
-            id: E[edge_order[i]].id,
-            label: i.toString(),
-            width: 5,
-            font: {
-                color: "#DE3163",
-                size: 23,
-            },
-        });
+            id : E[edge_order[i]].id,
+            label : i.toString(),
+            width : 5,
+            font : {
+                color : "#DE3163",
+                size : 23,
+            }
+        });       
     }
 }
 
@@ -467,8 +524,8 @@ function graphHHA(sequence, lengthSeq) {
         }
     }
 
-    nodes = new vis.DataSet();
-    edges = new vis.DataSet();
+    nodes.clear();
+    edges.clear();
 
     data = random_graph(lengthSeq);
     nodes.add(data.nodes);

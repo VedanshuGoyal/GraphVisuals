@@ -9,15 +9,22 @@ body,select {
 }
 
 #mynetwork {
-	position: absolute;
-	align: center;
-	margin: auto;
-	margin-top: 5%;
+	margin: 5% 2%;
 	background: #fff;
-	position: relative;
-	width: 800px;
-	height: 600px;
-	border: 1px solid black;
+	height: 700px;
+}
+
+#info{
+	background: #fff;
+	padding: 1% 1%;
+	margin: 5% 2%;
+	height: 700px;
+}
+
+
+#edgedata{
+	font-size: 20px;
+	resize: none;
 }
 
 table.legend_table {
