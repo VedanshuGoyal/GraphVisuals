@@ -4,6 +4,15 @@ var network = null;
 var Nz = 5;
 var seed = 2;
 var isonchange = 0;
+var bk;
+
+function updateorder(){
+    let o = document.getElementById("order");
+    let s = document.getElementById("size");
+
+    o.innerText = nodes.length.toString();
+    s.innerText = edges.length.toString();
+}
 
 function updateTextarea() {
     let z = document.getElementById("edgedata");
@@ -23,13 +32,8 @@ function updateTextarea() {
         }
         z.value += "\n";
     }
-
-    N = nodes.get();
-
-    let o = document.getElementById("order");
-    let s = document.getElementById("size");
-    o.innerText = N.length.toString();
-    s.innerText = E.length.toString();
+    bk = z.value;
+    updateorder();
 }
 
 nodes.on("*", function (event, properties, senderId) {
@@ -44,12 +48,16 @@ edges.on("*", function (event, properties, senderId) {
 
 function changetextarea() {
     isonchange = 1;
+    let z = document.getElementById("edgedata").value;
+    if(bk == z){
+        isonchange = 0;
+        return;
+    }
+    bk = z;
 
     edges.clear();
     nodes.clear();
     let map = {};
-    let z = document.getElementById("edgedata").value;
-    console.log(z);
     z += "\n";
 
     let s = "";
@@ -62,7 +70,7 @@ function changetextarea() {
                 if (sc.length == 1) {
                     let u = sc[0];
                     nodes.update({ id: parseInt(u), label: u });
-                } else if (sc.length <= 3) {
+                } else if (sc.length == 2 || sc.length == 3) {
                     let u = sc[0],
                         v = sc[1];
                     nodes.update({ id: parseInt(u), label: u });
@@ -87,6 +95,7 @@ function changetextarea() {
     }
 
     isonchange = 0;
+    updateorder();
 }
 
 function toJSON(obj) {
@@ -106,8 +115,6 @@ function random_graph(x) {
 
 function draw() {
     destroy();
-
-    // updateTextarea();
 
     var data = {
         nodes: nodes,
@@ -417,7 +424,7 @@ function SpanningTree() {
         }
     }
 
-    var graph = new jsgraphs.WeightedGraph(Nz);
+    var graph = new jsgraphs.WeightedGraph(n);
     let edgesCount = E.length;
 
     for (let i = 0; i < edgesCount; i++) {
@@ -437,6 +444,8 @@ function SpanningTree() {
     var kruskal = new jsgraphs.KruskalMST(graph);
     var mst = kruskal.mst;
 
+    let viss = new Array(edgesCount).fill(0)
+
     for (let j = 0; j < mst.length; j++) {
         for (let k = 0; k < edgesCount; k++) {
             if (
@@ -444,23 +453,37 @@ function SpanningTree() {
                 E[k].to == mst[j].w &&
                 parseInt(E[k].label) == mst[j].weight
             ) {
+                viss[k] = 1;
                 // console.log(E[k].id)
                 edges.update({
                     id: E[k].id,
                     width: 5,
-                    color: "#000",
+                    color: "#3498db",
                 });
                 break;
             }
         }
     }
 
-    for (let i = 0; i < n; i++) {
-        nodes.update({
-            id: rmp[i],
-            color: { background: "#675B7F" },
-        });
+    console.log(viss);
+
+    for(let k = 0; k < edgesCount; k++){
+        if(!viss[k]){
+            console.log(k);
+            edges.update({
+                id: E[k].id,
+                width : 2,
+                color: "#000",
+            });
+        }
     }
+
+    // for (let i = 0; i < n; i++) {
+    //     nodes.update({
+    //         id: rmp[i],
+    //         color: { background: "#675B7F" },
+    //     });
+    // }
 }
 
 var eg = []; // adjacency list for euler graph
@@ -491,9 +514,9 @@ function eulerdfs(s, edn) {
     // node, edge num
     for (let j = 0; j < eg[s].length; j++) {
         let x = eg[s][j];
-        if (vis[x[1]]) continue;
+        if (visit[x[1]]) continue;
 
-        vis[x[1]] = 1;
+        visit[x[1]] = 1;
         eulerdfs(x[0]);
         edge_order.push(x[1]);
     }
@@ -510,7 +533,9 @@ function EulerCircuit() {
         }
     }
 
-    eulerdfs(0, -1);
+    for(let i = 0; i < n; i++) {
+        eulerdfs(i, -1);
+    }
     edge_order.reverse();
 
     for (let i = 0; i < edge_order.length; i++) {
@@ -554,7 +579,7 @@ function graphHHA(sequence, lengthSeq) {
     nodes.clear();
     edges.clear();
 
-    Nz = lengthSeq;
+    n = lengthSeq;
 
     data = random_graph(lengthSeq);
     nodes.add(data.nodes);
