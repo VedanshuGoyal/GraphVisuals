@@ -6,3 +6,4 @@ We use visjs graph library.
 To see Demo : https://vedanshugoyal.github.io/GraphVisuals/#
 
 - Vedanshu Goyal
+- Neha Soni
