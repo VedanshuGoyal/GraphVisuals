@@ -6,7 +6,7 @@ var seed = 2;
 var isonchange = 0;
 var bk;
 
-function updateorder(){
+function updateorder() {
     let o = document.getElementById("order");
     let s = document.getElementById("size");
 
@@ -49,7 +49,7 @@ edges.on("*", function (event, properties, senderId) {
 function changetextarea() {
     isonchange = 1;
     let z = document.getElementById("edgedata").value;
-    if(bk == z){
+    if (bk == z) {
         isonchange = 0;
         return;
     }
@@ -444,7 +444,7 @@ function SpanningTree() {
     var kruskal = new jsgraphs.KruskalMST(graph);
     var mst = kruskal.mst;
 
-    let viss = new Array(edgesCount).fill(0)
+    let viss = new Array(edgesCount).fill(0);
 
     for (let j = 0; j < mst.length; j++) {
         for (let k = 0; k < edgesCount; k++) {
@@ -467,12 +467,12 @@ function SpanningTree() {
 
     console.log(viss);
 
-    for(let k = 0; k < edgesCount; k++){
-        if(!viss[k]){
+    for (let k = 0; k < edgesCount; k++) {
+        if (!viss[k]) {
             console.log(k);
             edges.update({
                 id: E[k].id,
-                width : 2,
+                width: 2,
                 color: "#000",
             });
         }
@@ -533,7 +533,7 @@ function EulerCircuit() {
         }
     }
 
-    for(let i = 0; i < n; i++) {
+    for (let i = 0; i < n; i++) {
         eulerdfs(i, -1);
     }
     edge_order.reverse();
@@ -566,7 +566,7 @@ function graphHHA(sequence, lengthSeq) {
     }
 
     for (let i = 0; i < lengthSeq; i++) {
-        for (let j = i + 1; j < lengthSeq; j++) {
+        for (let j = lengthSeq - 1; j > i; j--) {
             if (sequence[i] > 0 && sequence[j] > 0) {
                 sequence[i] = sequence[i] - 1;
                 sequence[j] = sequence[j] - 1;
@@ -640,7 +640,10 @@ function HHA() {
     var lengthSeq = sequence.length;
 
     var degreeSeq = [];
-    Array.prototype.push.apply(degreeSeq, sequence);
+    // Array.prototype.push.apply(degreeSeq, sequence);
+    for (let i = 0; i < sequence.length; i++) {
+        degreeSeq[i] = sequence[i];
+    }
 
     while (true) {
         sequence.sort((first, second) => second - first);
