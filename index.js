@@ -301,7 +301,7 @@ function init_algo() {
     (N = nodes.get()), (E = edges.get());
     // console.log(E)
     n = N.length;
-    e = E.length;
+    ne = E.length;
     let z = 0;
     for (i in N) {
         let id = N[i].id;
@@ -428,17 +428,13 @@ function SpanningTree() {
     let edgesCount = E.length;
 
     for (let i = 0; i < edgesCount; i++) {
-        if (E[i].label) {
-            graph.addEdge(
-                new jsgraphs.Edge(E[i].from, E[i].to, parseInt(E[i].label))
-            );
-        } else {
+        if (!E[i].label) {
             edges.update({ id: E[i].id, label: "1" });
             E[i].label = "1";
-            graph.addEdge(
-                new jsgraphs.Edge(E[i].from, E[i].to, parseInt(E[i].label))
-            );
         }
+        graph.addEdge(
+            new jsgraphs.Edge(mp[E[i].from], mp[E[i].to], parseInt(E[i].label))
+        );
     }
 
     var kruskal = new jsgraphs.KruskalMST(graph);
@@ -449,8 +445,8 @@ function SpanningTree() {
     for (let j = 0; j < mst.length; j++) {
         for (let k = 0; k < edgesCount; k++) {
             if (
-                E[k].from == mst[j].v &&
-                E[k].to == mst[j].w &&
+                mp[E[k].from] == mst[j].v &&
+                mp[E[k].to] == mst[j].w &&
                 parseInt(E[k].label) == mst[j].weight
             ) {
                 viss[k] = 1;
@@ -465,11 +461,11 @@ function SpanningTree() {
         }
     }
 
-    console.log(viss);
+    // console.log(viss);
 
     for (let k = 0; k < edgesCount; k++) {
         if (!viss[k]) {
-            console.log(k);
+            // console.log(k);
             edges.update({
                 id: E[k].id,
                 width: 2,
@@ -493,6 +489,7 @@ function init_euler() {
     eg = new Array(n);
     edge_order = new Array();
     visit = new Array(ne).fill(0);
+    // console.log(ne)
 
     for (let i = 0; i < n; i++) {
         eg[i] = new Array();
@@ -533,9 +530,18 @@ function EulerCircuit() {
         }
     }
 
-    for (let i = 0; i < n; i++) {
-        eulerdfs(i, -1);
+    eulerdfs(0, -1);
+    // console.log(visit)
+    for(let i = 0; i < ne; i++){
+        if(!visit[i]){
+            alert("Given Graph does not have a Eulerian cycle.");
+            return;
+        }
     }
+
+    // for (let i = 0; i < n; i++) {
+    //     eulerdfs(i, -1);
+    // }
     edge_order.reverse();
 
     for (let i = 0; i < edge_order.length; i++) {
